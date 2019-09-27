@@ -1,0 +1,26 @@
+00000000 :                       #  init_allocator:
+00000000 :                       #  .LFB0:
+00000000 : 517008000000          #      subq $8, %rsp
+00000006 : 39B7                  #      movq %r11, (%rsp)
+00000008 : A40048000000          #      leaq allocator_base, %rax
+0000000e : A4B050000000          #      leaq cur_allocator, %r11
+00000014 : 390B                  #      movq %rax, (%r11)
+00000016 : 31B7                  #      movq (%rsp), %r11
+00000018 : 507008000000          #      addq $8, %rsp
+0000001e : 000B                  #      ret %r11
+00000020 :                       #  allocate:
+00000020 :                       #  .LFB1:
+00000020 : 517008000000          #      subq $8, %rsp
+00000026 : 39B7                  #      movq %r11, (%rsp)
+00000028 : A4B050000000          #      leaq cur_allocator, %r11
+0000002e : 310B                  #      movq (%r11), %rax
+00000030 : 933063                #      leaq (%rax, %rdi, 8), %rdx
+00000033 : A4B050000000          #      leaq cur_allocator, %r11
+00000039 : 393B                  #      movq %rdx, (%r11)
+0000003b : 31B7                  #      movq (%rsp), %r11
+0000003d : 507008000000          #      addq $8, %rsp
+00000043 : 000B                  #      ret %r11
+00000045 :                       #  .LFE0:
+00000045 :                       #  .LFE1:
+00000048 : 0000000000000000      #      .comm allocator_base,8,8
+00000050 : 0000000000000000      #      .comm cur_allocator,8,8

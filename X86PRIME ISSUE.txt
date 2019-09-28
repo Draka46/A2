@@ -1,0 +1,3 @@
+- Mark
+
+Jeg kan ikke commit x86prime mappen fra min computer, af en eller anden grund. Du vil blive nød til at hente de resources selv og bruge ./buildall.sh kommandoen til at bygge bin mappen med filer der benyttes for at oversætte .c programmer til .prime, .hex, .sym og til at teste dem.

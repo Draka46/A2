@@ -1,9 +1,0 @@
-.LFE2 : 0000004e
-.LFE1 : 0000004e
-.LFE0 : 0000004e
-.LFB2 : 00000034
-write_long : 00000034
-.LFB1 : 0000001a
-gen_random : 0000001a
-.LFB0 : 00000000
-read_long : 00000000

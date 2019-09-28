@@ -1,0 +1,16 @@
+P 0 4e
+R 7 fffffffffffffff8
+P 0 54
+M fffffffffffffff8 0
+P 0 56
+R 0 230
+P 0 5c
+R b 238
+P 0 62
+M 238 230
+P 0 64
+R b 0
+P 0 66
+R 7 0
+P 0 6c
+P 0 0

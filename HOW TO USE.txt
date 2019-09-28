@@ -2,6 +2,8 @@
 
 I denne her afleveringen er det udleveret program ikke kørt gennem Main.c
 I stedet, bruges kommandoen: make sim
-sim.exe filen kan dernæst køres. Den tag en program fil som argument, sammen med en reference hvor den skal starte i hexidecimal (fået fra genereret .hex fil med x86prime værktøjerne vi har fået udleveret)
+sim.exe filen kan dernæst køres. Den tag en program fil som argument, sammen med en reference hvor den skal starte i hexidecimal (fået fra genereret .hex fil med x86prime værktøjerne vi har fået udleveret). Den tager evt. også et tredje argument, en .trc file for sammenligning mellem vores program og en aktuelt oversætter.
 
-Jeg har samlet nogle program filer i 'programs' mappen
+For at lave en primefil, bruges kommandoen: gcc -S -Og -fno-optimize-sibling-calls FILNAVN.c
+
+test.sh genererer and tester automatisk .prime filer placeret i tests mappen.

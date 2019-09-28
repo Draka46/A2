@@ -1,0 +1,3 @@
+test:
+  movq $256, %rdx
+  movq %rdx, %rdi

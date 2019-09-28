@@ -1,0 +1,167 @@
+read_long:
+.LFB0:
+    subq $8, %rsp
+    movq %r11, (%rsp)
+    leaq 268435456, %r11
+    movq (%r11), %rax
+    movq (%rsp), %r11
+    addq $8, %rsp
+    ret %r11
+gen_random:
+.LFB1:
+    subq $8, %rsp
+    movq %r11, (%rsp)
+    leaq 268435457, %r11
+    movq (%r11), %rax
+    movq (%rsp), %r11
+    addq $8, %rsp
+    ret %r11
+write_long:
+.LFB2:
+    subq $8, %rsp
+    movq %r11, (%rsp)
+    leaq 268435458, %r11
+    movq %rdi, (%r11)
+    movq (%rsp), %r11
+    addq $8, %rsp
+    ret %r11
+init_allocator:
+.LFB3:
+    subq $8, %rsp
+    movq %r11, (%rsp)
+    leaq allocator_base, %rax
+    leaq cur_allocator, %r11
+    movq %rax, (%r11)
+    movq (%rsp), %r11
+    addq $8, %rsp
+    ret %r11
+allocate:
+.LFB4:
+    subq $8, %rsp
+    movq %r11, (%rsp)
+    leaq cur_allocator, %r11
+    movq (%r11), %rax
+    leaq (%rax, %rdi, 8), %rdx
+    leaq cur_allocator, %r11
+    movq %rdx, (%r11)
+    movq (%rsp), %r11
+    addq $8, %rsp
+    ret %r11
+get_random_array:
+.LFB5:
+    subq $40, %rsp
+    movq %r11, 32(%rsp)
+    movq %r13, 24(%rsp)
+    movq %r12, 16(%rsp)
+    movq %rbp, 8(%rsp)
+    movq %rbx, (%rsp)
+    movq %rdi, %r12
+    call allocate, %r11
+    movq %rax, %r13
+    movq $0, %ebx
+    jmp .L7
+.L8:
+    leaq 0(%r13, %rbx, 8), %rbp
+    movq $0, %eax
+    call gen_random, %r11
+    movq %rax, 0(%rbp)
+    addq $1, %rbx
+.L7:
+    cbg %r12, %rbx, .L8
+    movq %r13, %rax
+    movq (%rsp), %rbx
+    movq 8(%rsp), %rbp
+    movq 16(%rsp), %r12
+    movq 24(%rsp), %r13
+    movq 32(%rsp), %r11
+    addq $40, %rsp
+    ret %r11
+sort:
+.LFB6:
+    subq $8, %rsp
+    movq %r11, (%rsp)
+    movq $0, %r10d
+    jmp .L11
+.L13:
+    addq $1, %rax
+.L12:
+    cble %rdi, %rax, .L16
+    leaq (%rsi, %r10, 8), %r8
+    movq (%r8), %rcx
+    leaq (%rsi, %rax, 8), %rdx
+    movq (%rdx), %r9
+    cbge %r9, %rcx, .L13
+    movq %r9, (%r8)
+    movq %rcx, (%rdx)
+    jmp .L13
+.L16:
+    movq %r11, %r10
+.L11:
+    cble %rdi, %r10, .L17
+    leaq 1(%r10), %r11
+    movq %r11, %rax
+    jmp .L12
+.L17:
+    movq (%rsp), %r11
+    addq $8, %rsp
+    ret %r11
+print_array:
+.LFB7:
+    subq $32, %rsp
+    movq %r11, 24(%rsp)
+    movq %r12, 16(%rsp)
+    movq %rbp, 8(%rsp)
+    movq %rbx, (%rsp)
+    movq %rdi, %rbp
+    movq %rsi, %r12
+    movq $0, %ebx
+    jmp .L19
+.L20:
+    leaq (%r12, %rbx, 8), %r11
+    movq (%r11), %rdi
+    call write_long, %r11
+    addq $1, %rbx
+.L19:
+    cbg %rbp, %rbx, .L20
+    movq (%rsp), %rbx
+    movq 8(%rsp), %rbp
+    movq 16(%rsp), %r12
+    movq 24(%rsp), %r11
+    addq $32, %rsp
+    ret %r11
+test:
+.LFB8:
+    subq $24, %rsp
+    movq %r11, 16(%rsp)
+    movq %rbp, 8(%rsp)
+    movq %rbx, (%rsp)
+    movq $0, %eax
+    call init_allocator, %r11
+    movq $0, %eax
+    call read_long, %r11
+    movq %rax, %rbx
+    movq %rax, %rdi
+    call get_random_array, %r11
+    movq %rax, %rbp
+    movq %rax, %rsi
+    movq %rbx, %rdi
+    call sort, %r11
+    movq %rbp, %rsi
+    movq %rbx, %rdi
+    call print_array, %r11
+    movq (%rsp), %rbx
+    movq 8(%rsp), %rbp
+    movq 16(%rsp), %r11
+    addq $24, %rsp
+    ret %r11
+.LFE0:
+.LFE1:
+.LFE2:
+.LFE3:
+.LFE4:
+.LFE5:
+.LFE6:
+.LFE7:
+.LFE8:
+    .comm allocator_base,8,8
+    .comm cur_allocator,8,8

@@ -1,0 +1,30 @@
+read_long:
+.LFB0:
+    subq $8, %rsp
+    movq %r11, (%rsp)
+    leaq 268435456, %r11
+    movq (%r11), %rax
+    movq (%rsp), %r11
+    addq $8, %rsp
+    ret %r11
+gen_random:
+.LFB1:
+    subq $8, %rsp
+    movq %r11, (%rsp)
+    leaq 268435457, %r11
+    movq (%r11), %rax
+    movq (%rsp), %r11
+    addq $8, %rsp
+    ret %r11
+test:
+.LFB2:
+    subq $8, %rsp
+    movq %r11, (%rsp)
+    leaq 268435458, %r11
+    movq %rdi, (%r11)
+    movq (%rsp), %r11
+    addq $8, %rsp
+    ret %r11
+.LFE0:
+.LFE1:
+.LFE2:

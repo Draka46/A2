@@ -1,21 +1,17 @@
 1 0
 major_op: 6
 minor_op: 4
-mem_wr_enable: 0
 ------ 
 2 6
 major_op: 2
 minor_op: 1
-mem_wr_enable: 0
 ------ 
 3 8
 major_op: 3
 minor_op: 9
-mem_wr_enable: 1
 ------ 
 4 a
 major_op: 0
 minor_op: 0
-mem_wr_enable: 0
 ------ 
 Done

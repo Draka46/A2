@@ -12,7 +12,7 @@
 #include "compute.h"
 
 // major opcodes (1st 4 bits of instruction encoding (see A2.pdf section A "encoding.txt"))
-// Specifies left-side details of operation to be performed (ex. movq s,...)
+// Specifies right-side details of operation to be performed (ex. movq ...,d), special cases excluded (ex. reversed for movq d,(s))
 #define RETURN         0x0
 #define REG_ARITHMETIC 0x1
 #define REG_MOVQ       0x2
@@ -28,13 +28,16 @@
 #define IMM_CBRANCH    0xF
 
 // minor opcodes (2nd 4 bits of instruction encoding)
-// Specifies right-side details of operation to be performed (ex. movq ...,d)
+// Specifies left-side details of operation to be performed (ex. movq movq s,...)
 #define COPY_MOVQ_REG  0x1
 #define IMM_MOVQ_REG   0x4
 #define MOVQ_MEM_REG   0x9
 
 #define JMP 0xF
 #define CALL 0xE
+
+// major opcode registers (3rd 4 bits of instruction encoding). Specifies right-side register address
+// minor opcode registers (4th 4 bits of instruction encoding). Specifies left-side register address
 
 int main(int argc, char* argv[]) {
     // Check command line parameters.
@@ -45,8 +48,7 @@ int main(int argc, char* argv[]) {
         error("Missing starting address (in hex notation)");
 
     /*** SETUP ***/
-    // We set up global state through variables that are preserved between
-    // cycles.
+    // We set up global state through variables that are preserved between cycles.
 
     // Program counter / Instruction Pointer
     ip_reg_p ip = ip_reg_create();
@@ -110,8 +112,8 @@ int main(int argc, char* argv[]) {
 		is_load = is_load && !is_store;                            // fix for is_load = true, whenever is_store is true
 		is_reg_movq = is_reg_movq || (!is_load && !is_imm_movq);   // fix for is_reg_movq != true, whenever is_store is true
 		
-		printf("major_op: %llu\n", major_op);
-		printf("minor_op: %llu\n", minor_op);
+		printf("major_op: %lx\n", major_op.val);
+		printf("minor_op: %lx\n", minor_op.val);
 		//printf("is_return: %d\n", is_return);
 		//printf("is_reg_movq: %d\n", is_reg_movq);
 		//printf("is_imm_movq: %d\n", is_imm_movq);
@@ -169,14 +171,14 @@ int main(int argc, char* argv[]) {
         // choose result to write back to register
         val datapath_result = or(use_if(is_reg_movq || is_imm_movq, op_b), use_if(is_load, mem_out));
 		
-		//printf("reg_d: %llu\n", reg_d);
-		//printf("reg_wr_enable: %d\n", reg_wr_enable);
-		//printf("datapath_result: %llu\n", datapath_result);
-		//printf("reg_out_a: %llu\n", reg_out_a);
-		//printf("agen_result: %llu\n", agen_result);
-		//printf("reg_out_b: %llu\n", reg_out_b);
-		//printf("bgen_result: %llu\n", bgen_result);
-		//printf("mem_out: %llu\n", mem_out);
+		//printf("reg_d: %lx\n", reg_d.val);
+		//printf("reg_wr_enable: %d\n", reg_wr_enable.val);
+		//printf("datapath_result: %lx\n", datapath_result.val);
+		//printf("reg_out_a: %lx\n", reg_out_a.val);
+		//printf("agen_result: %lx\n", agen_result.val);
+		//printf("reg_out_b: %lx\n", reg_out_b.val);
+		//printf("bgen_result: %lx\n", bgen_result.val);
+		//printf("mem_out: %lx\n", mem_out.val);
 
         // write to register if needed
         reg_write(regs, reg_d, datapath_result, reg_wr_enable);
@@ -193,7 +195,6 @@ int main(int argc, char* argv[]) {
         // terminate when returning to zero
         if (pc_next.val == 0 && is_return) stop = true;
 
-		//printf("%" PRId64 "\n", );
 		printf("------ \n");
     }
     memory_destroy(mem);

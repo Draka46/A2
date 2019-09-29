@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\tests",
+    "\\test_runs"
   ],
-  "SelectedNode": "\\main.c",
+  "SelectedNode": "\\wires.h",
   "PreviewInSolutionExplorer": false
 }

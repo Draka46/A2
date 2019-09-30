@@ -29,21 +29,21 @@ reg_out_a: 0
 mem_out: 0
 ------ 
 3 8
-major_op: 3
-minor_op: 9
-is_reg_movq: 1
-is_load: 0
-is_imm_movq_mem: 0
+major_op: 7
+minor_op: 5
+is_reg_movq: 0
+is_load: 1
+is_imm_movq_mem: 1
 reg_out_b: 100
-add(op_b, reg_out_b): 200
-bgen_result: 100
-reg_wr_enable: 0
-mem_wr_enable: 1
-datapath_result: 100
+add(op_b, reg_out_b): 101
+bgen_result: 101
+reg_wr_enable: 1
+mem_wr_enable: 0
+datapath_result: 0
 reg_out_a: 100
 mem_out: 0
 ------ 
-4 a
+4 e
 major_op: 0
 minor_op: 0
 is_reg_movq: 1

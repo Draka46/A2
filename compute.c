@@ -10,6 +10,7 @@ val shift_right_signed(val a, val v) { return from_int(((int64_t)a.val) >> v.val
 
 val mul(val a, val b) { return from_int(a.val * b.val); }
 val imul(val a, val b) { return from_int((uint64_t)((int64_t)a.val * (int64_t)b.val)); }
+#include <stdio.h>
 
 bool comparator(val comparison, val op_a, val op_b) {
     val neg_b = neg(64, op_b);
@@ -22,7 +23,6 @@ bool comparator(val comparison, val op_a, val op_b) {
     bool r_sign = pick_one(63, res);
     bool of = (a_sign && !b_sign && !r_sign)
       || (!a_sign && b_sign && r_sign);
-      
       /* (!(a_sign || b_sign) &&   r_sign) ||
 	 (  a_sign && b_sign  && (!r_sign)); */
     bool sf = r_sign;
@@ -35,10 +35,10 @@ bool comparator(val comparison, val op_a, val op_b) {
     bool res_ge = is(GE, comparison) & (bool_xor(sf, of) || zf);
     bool res_l  = is(L, comparison)  & bool_not(bool_xor(sf, of)) & bool_not(zf);
     bool res_le = is(LE, comparison) & bool_not(bool_xor(sf, of));
-    bool res_b  = is(B, comparison)  & bool_not(cf || zf);
-    bool res_be = is(BE, comparison) & bool_not(cf);
-    bool res_a  = is(A, comparison)  & cf;
-    bool res_ae = is(AE, comparison) & (cf || zf);
+    bool res_a  = is(A, comparison)  & bool_not(cf || zf);
+    bool res_ae = is(AE, comparison) & bool_not(cf);
+    bool res_b  = is(B, comparison)  & cf;
+    bool res_be = is(BE, comparison) & (cf || zf);
     return res_e || res_ne || res_l || res_le || res_g || res_ge
         || res_a || res_ae || res_b || res_be;
 }

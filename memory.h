@@ -34,4 +34,5 @@ void memory_write(mem_p, val address, val value, bool wr_enable);
 // read 10 bytes unaligned, for instruction fetch
 void memory_read_into_buffer(mem_p, val address, val bytes[], bool enable);
 
-
+// parse argument vector and load it into simulated argv area
+void memory_load_argv(mem_p, int argc, char* argv[]);

@@ -1,12 +1,23 @@
 1 0
 major_op: 6
 minor_op: 4
+reg_d: 3
+reg_s: 0
+reg_z: 0
+scale_v: 0
 is_reg_movq: 0
 is_load: 0
 is_imm_movq_mem: 0
+size2: 0
+size3: 0
+size6: 1
 reg_out_b: 0
-add(op_b, reg_out_b): 100
 bgen_result: 0
+reg_out_z: 0
+zv: 0
+op_b: 100
+use_zv: 0
+add(zv, reg_out_b): 0
 reg_wr_enable: 1
 mem_wr_enable: 0
 datapath_result: 100
@@ -16,12 +27,23 @@ mem_out: 0
 2 6
 major_op: 2
 minor_op: 1
+reg_d: 6
+reg_s: 3
+reg_z: 0
+scale_v: 0
 is_reg_movq: 1
 is_load: 0
 is_imm_movq_mem: 0
+size2: 1
+size3: 0
+size6: 0
 reg_out_b: 100
-add(op_b, reg_out_b): 200
 bgen_result: 100
+reg_out_z: 0
+zv: 0
+op_b: 100
+use_zv: 0
+add(zv, reg_out_b): 100
 reg_wr_enable: 1
 mem_wr_enable: 0
 datapath_result: 100
@@ -31,12 +53,23 @@ mem_out: 0
 3 8
 major_op: 0
 minor_op: 0
+reg_d: 0
+reg_s: 0
+reg_z: 0
+scale_v: 0
 is_reg_movq: 1
 is_load: 0
 is_imm_movq_mem: 0
+size2: 1
+size3: 0
+size6: 0
 reg_out_b: 0
-add(op_b, reg_out_b): 0
 bgen_result: 0
+reg_out_z: 0
+zv: 0
+op_b: 0
+use_zv: 0
+add(zv, reg_out_b): 0
 reg_wr_enable: 0
 mem_wr_enable: 0
 datapath_result: 0

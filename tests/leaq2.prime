@@ -1,0 +1,4 @@
+test:
+  movq $256, %rdx
+  movq $1, %rdi
+  leaq (,%rdx,4), %rdi

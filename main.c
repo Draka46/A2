@@ -30,6 +30,7 @@
 // minor opcodes (2nd 4 bits of instruction encoding)
 // Specifies left-side details of operation to be performed (ex. movq movq s,...)
 #define COPY_MOVQ_REG     0x1
+#define LEAQ3_REG         0x2
 #define IMM_MOVQ_REG      0x4
 #define IMM_MEM_MOVQ_REG  0x5
 #define MOVQ_MEM_REG      0x9
@@ -94,10 +95,23 @@ int main(int argc, char* argv[]) {
         /*** DECODE ***/
         // read 4 bit values
         val major_op = pick_bits(4,  4, inst_bytes[0]);
-        val minor_op = pick_bits(0,  4, inst_bytes[0]); // <--- essential for further decode, but not used yet
+        val minor_op = pick_bits(0,  4, inst_bytes[0]);
 
         val reg_d = pick_bits(4, 4, inst_bytes[1]);
         val reg_s = pick_bits(0, 4, inst_bytes[1]);
+
+        val reg_z = pick_bits(4, 4, inst_bytes[2]);
+        val scale_v = pick_bits(0, 4, inst_bytes[2]);
+		
+		//printf("inst_bytes[2]: %lx\n", inst_bytes[2].val);
+		//printf("inst_bytes[3]: %lx\n", inst_bytes[3].val);
+
+		printf("major_op: %lx\n", major_op.val);
+		printf("minor_op: %lx\n", minor_op.val);
+		printf("reg_d: %lx\n", reg_d.val);
+		printf("reg_s: %lx\n", reg_s.val);
+		printf("reg_z: %lx\n", reg_z.val);
+		printf("scale_v: %lx\n", scale_v.val);
 
         // decode instruction type
         // read major operation code
@@ -106,6 +120,8 @@ int main(int argc, char* argv[]) {
         bool is_imm_movq = is(IMM_MOVQ, major_op);                 // movq $i,...
 		bool is_load = is(REG_MOVQ_MEM, major_op);                 // movq (s),...
 		bool is_imm_movq_mem = is(IMM_MOVQ_MEM, major_op);         // movq $i(s),...
+		//bool is_leaq2 = is(LEAQ2, major_op);                     // leaq (s),d
+		bool is_leaq3 = is(LEAQ3, major_op);                       // leaq (,z,v),d
 		
 		// read minor operation code
 		bool is_copy_movq_reg = is(COPY_MOVQ_REG, minor_op);       // movq d,(s)
@@ -113,13 +129,12 @@ int main(int argc, char* argv[]) {
 		bool is_imm_mem_movq_reg = is(IMM_MEM_MOVQ_REG, minor_op); // movq i(s),d
 		bool is_movq_mem_imm = is(MOVQ_MEM_IMM, minor_op);         // movq d,i(s)
 		bool is_store = is(MOVQ_MEM_REG, minor_op);                // movq ...,d
+		bool is_leaq3_reg = is(LEAQ3_REG, minor_op);               // leaq (,z,v),d
 
 		is_load = (is_load || is_imm_movq_mem) && !(is_store || is_movq_mem_imm);     // fix for is_load = true, whenever is_store is true
 		is_imm_movq_mem = is_imm_movq_mem && !is_movq_mem_imm;                        // fix for is_imm_movq_mem = true, whenever is_movq_mem_imm is true
-		is_reg_movq = is_reg_movq || (!is_load && !is_imm_movq_mem && !is_imm_movq);  // fix for is_reg_movq = false, whenever is_store is true or is_movq_mem_imm is true
+		is_reg_movq = is_reg_movq || (!is_load && !is_imm_movq_mem && !is_imm_movq);  // fix for is_reg_movq = false, whenever is_store is true or is_movq_mem_imm is true.
 
-		printf("major_op: %lx\n", major_op.val);
-		printf("minor_op: %lx\n", minor_op.val);
 		//printf("is_return: %d\n", is_return);
 		printf("is_reg_movq: %d\n", is_reg_movq);
 		//printf("is_imm_movq: %d\n", is_imm_movq);
@@ -129,22 +144,26 @@ int main(int argc, char* argv[]) {
 		//printf("is_store: %d\n", is_store);
 
         // determine instruction size
-        bool size2 = (is_return || is_reg_movq || is_load) && !is_movq_mem_imm;
+        bool size2 = (is_return || is_reg_movq || is_load) && !is_movq_mem_imm && !is_leaq3;
+		bool size3 = is_leaq3;
         bool size6 = is_imm_movq || is_imm_movq_mem || is_movq_mem_imm;
+		
+		printf("size2: %d\n", size2);
+		printf("size3: %d\n", size3);
+		printf("size6: %d\n", size6);
 
-        val ins_size = or(use_if(size2, from_int(2)), use_if(size6, from_int(6)));
+        val ins_size = or(or(use_if(size2, from_int(2)), use_if(size3, from_int(3))), use_if(size6, from_int(6)));
 
         // setting up operand fetch and register read and write for the datapath:
 		bool use_imm = is_imm_movq || is_imm_movq_mem || is_movq_mem_imm;
-        val reg_read_dz = reg_d;
-        val reg_read_sz = reg_s;
-        // - other read port is always reg_s
-        // - write is always to reg_d
-        bool reg_wr_enable = is_copy_movq_reg || is_imm_movq_reg || is_imm_mem_movq_reg;
-		bool mem_wr_enable = is_store || is_movq_mem_imm;
+        val reg_read_dz = reg_d; // - write is always to reg_d
+        val reg_read_sz = reg_s; // - other read port is always reg_s
+        val reg_read_zz = reg_z;
+		bool use_zv = is_leaq3;
+        bool reg_wr_enable = is_copy_movq_reg || is_imm_movq_reg || is_imm_mem_movq_reg || is_leaq3;  // write-to-register
+		bool mem_wr_enable = is_store || is_movq_mem_imm;  // write-to-memory
 
         // Datapath:
-        //
         // read immediates based on instruction type
         val imm_offset_2 = or(or(put_bits(0, 8, inst_bytes[2]), put_bits(8,8, inst_bytes[3])),
                               or(put_bits(16, 8, inst_bytes[4]), put_bits(24,8, inst_bytes[5])));
@@ -155,20 +174,33 @@ int main(int argc, char* argv[]) {
         // read registers
         val reg_out_a = reg_read(regs, reg_read_dz);
         val reg_out_b = reg_read(regs, reg_read_sz);
+        val reg_out_z = reg_read(regs, reg_read_zz);
 		val op_b = or(use_if(use_imm, sext_imm_i),use_if(!use_imm, reg_out_b));  // movq $i,.. -> $i | movq s,d -> s | movq i(s),d -> $i | movq d,i(s) -> $i
 		
 		//printf("sext_imm_i: %lx\n", sext_imm_i.val);
 		//printf("op_b: %lx\n", op_b.val);
 
         // perform calculations
-        // not really any calculations yet!
+        // calculate z*v
+		val z2 = add(reg_out_z, reg_out_z);
+		val z4 = add(z2, z2);
+		val z8 = add(z4, z4);
+		val zv = or(or(use_if(is(0, scale_v), reg_out_z), use_if(is(1, scale_v), z2)), or(use_if(is(2, scale_v), z4), use_if(is(3, scale_v), z8)));
 		// generate address for memory access..
         val agen_result = reg_out_a;   // ..right-side instruction argument
-        val bgen_result = or(use_if(is_imm_movq_mem || is_movq_mem_imm, add(op_b, reg_out_b)), use_if(!(is_imm_movq_mem || is_movq_mem_imm), reg_out_b));   // ..left-side instruction argument
-		
+        val bgen_result = reg_out_b;   // ..left-side instruction argument
+		bgen_result = or(use_if(use_zv, add(zv, bgen_result)), use_if(!use_zv, bgen_result));                       // addition with z*v
+		bgen_result = or(use_if(is_imm_movq_mem || is_movq_mem_imm, add(op_b, bgen_result)), use_if(!(is_imm_movq_mem || is_movq_mem_imm), bgen_result));   // addition with immidiate
+		op_b = or(use_if(use_zv, bgen_result), use_if(!use_zv, op_b));
+
 		printf("reg_out_b: %lx\n", reg_out_b.val);
-		printf("add(op_b, reg_out_b): %lx\n", add(op_b, reg_out_b).val);
+		//printf("add(op_b, reg_out_b): %lx\n", add(op_b, reg_out_b).val);
 		printf("bgen_result: %lx\n", bgen_result.val);
+		printf("reg_out_z: %lx\n", reg_out_z.val);
+		printf("zv: %lx\n", zv.val);
+		printf("op_b: %lx\n", op_b.val);
+		printf("use_zv: %d\n", use_zv);
+		printf("add(zv, reg_out_b): %lx\n", add(zv, reg_out_b).val);
 
         // address of succeeding instruction in memory
         val pc_incremented  = add(pc, ins_size);
@@ -194,8 +226,6 @@ int main(int argc, char* argv[]) {
 
         // write to register if needed
         reg_write(regs, reg_d, datapath_result, reg_wr_enable);
-
-		//printf("mem_wr_enable: %d\n", mem_wr_enable);
 
         // write to memory if needed
         // Not implemented yet!

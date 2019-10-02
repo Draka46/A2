@@ -172,6 +172,10 @@ bool is_io_device(val address) {
     return address.val >= 0x10000000 && address.val < 0x20000000;
 }
 
+bool is_argv_area(val address) {
+    return address.val >= 0x20000000 && address.val < 0x30000000;
+}
+
 val memory_read(mem_p mem, val address, bool enable) {
     if (!enable) return from_int(0);
     if (is_io_device(address)) {
@@ -190,7 +194,19 @@ val memory_read(mem_p mem, val address, bool enable) {
         else if (address.val == 0x10000001) retval.val = rand();
         else error("Input from unknown port");
         return retval;
-    } else {
+    }
+    else if (is_argv_area(address)) {
+        val retval;
+        if (mem->i_tracer) {
+            if (trace_match_and_get_next(mem->i_tracer, address, &retval))
+                return retval;
+            else
+                error("Trace mismatch on read from argv area");
+        }
+        // if no tracer, just access arguments from memory. Presumably set from commandline
+        return from_int(memory_read_quad(mem, address.val));
+    }
+    else {
         return from_int(memory_read_quad(mem, address.val));
     }
 }
@@ -207,6 +223,7 @@ void memory_write(mem_p mem, val address, val value, bool wr_enable) {
             if (address.val == 0x10000002) printf("%lx ", value.val);
             else error("Output to unknown port");
         } else {
+            // With respect to writes, we treat the argv area as a normal memory area
             if (trace_match_next(mem->m_tracer, address, value))
                 memory_write_quad(mem, address.val, value.val);
             else
@@ -215,3 +232,19 @@ void memory_write(mem_p mem, val address, val value, bool wr_enable) {
     }
 }
 
+void memory_load_argv(mem_p mem, int argc, char* argv[]) {
+    val address;
+    address.val = 0x20000000;
+    val value;
+    value.val = argc;
+    memory_write(mem, address, value, true);
+    for (int k = 0; k < argc; ++k) {
+        int v;
+        int res = sscanf(argv[k],"%d", &v);
+        if (res != 1)
+            error("Invalid command line argument");
+        address.val += 8;
+        value.val = v;
+        memory_write(mem, address, value, true);
+    }
+}
